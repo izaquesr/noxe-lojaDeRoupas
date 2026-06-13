@@ -1,0 +1,194 @@
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 24px 0 8px;
+  font-size: 0.8125rem;
+  color: var(--texto-muted);
+  flex-wrap: wrap;
+}
+.breadcrumb a { color: var(--texto-secundario); transition: color var(--transition); }
+.breadcrumb a:hover { color: var(--texto); }
+
+.notFound {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 80px 20px;
+  text-align: center;
+}
+
+/* Layout */
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 56px;
+  padding: 24px 0 64px;
+  align-items: start;
+}
+
+/* Gallery */
+.gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: sticky;
+  top: calc(var(--header-h) + 24px);
+}
+.mainImg {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--card);
+  border: 1px solid var(--borda);
+  aspect-ratio: 4/5;
+}
+.mainImg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+.mainImg:hover img { transform: scale(1.03); }
+.badge {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+}
+.badgeSale { top: 46px; }
+
+.thumbs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+.thumbs::-webkit-scrollbar { display: none; }
+.thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 2px solid var(--borda);
+  flex-shrink: 0;
+  transition: border-color var(--transition);
+  cursor: pointer;
+}
+.thumb img { width: 100%; height: 100%; object-fit: cover; }
+.thumb.active { border-color: var(--principal); }
+.thumb:hover { border-color: var(--borda-light); }
+
+/* Info */
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-top: 8px;
+}
+.cat {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--principal);
+}
+.nome {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-weight: 800;
+  color: var(--h1);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ratingNum { font-weight: 700; font-size: 0.875rem; color: var(--texto); }
+.ratingCount { font-size: 0.8125rem; color: var(--texto-muted); }
+
+.priceBlock {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.preco {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--h1);
+  font-family: 'Syne', sans-serif;
+}
+.precoDe {
+  font-size: 1rem;
+  color: var(--texto-muted);
+  text-decoration: line-through;
+}
+.discountTag {
+  background: var(--erro-bg);
+  color: var(--erro);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+}
+
+.stock { font-size: 0.875rem; }
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+.stockOk { color: var(--sucesso); }
+.stockOk .dot { background: var(--sucesso); }
+.stockLow { color: var(--aviso); }
+.stockLow .dot { background: var(--aviso); animation: pulse 1.5s infinite; }
+.stockOut { color: var(--erro); }
+
+.descricao {
+  font-size: 0.9375rem;
+  color: var(--texto-secundario);
+  line-height: 1.7;
+}
+
+.variantPreview { display: flex; flex-direction: column; gap: 10px; }
+.variantLabel { font-size: 0.8125rem; font-weight: 600; color: var(--texto-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.divider { height: 1px; background: var(--borda); }
+
+.actions { display: flex; flex-direction: column; gap: 10px; }
+
+.trustBadges {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.trustItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.775rem;
+  color: var(--texto-muted);
+}
+
+/* Related */
+.related { padding: 24px 0 64px; border-top: 1px solid var(--borda); margin-top: 16px; }
+.relatedGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; gap: 32px; }
+  .gallery { position: static; }
+}
+@media (max-width: 640px) {
+  .preco { font-size: 1.5rem; }
+}

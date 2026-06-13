@@ -1,0 +1,115 @@
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--borda);
+  animation: fadeIn 0.2s ease;
+  transition: background var(--transition);
+}
+.item:hover { background: var(--card); }
+
+.img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  border: 1px solid var(--borda);
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--h2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.variants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.tag {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--bg3);
+  color: var(--texto-muted);
+  border: 1px solid var(--borda);
+}
+
+.priceRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+.price {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--texto);
+}
+.subtotal {
+  font-size: 0.75rem;
+  color: var(--texto-muted);
+}
+
+/* Controls */
+.controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.qty {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--borda);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.qtyBtn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  color: var(--texto-secundario);
+  background: var(--bg3);
+  transition: all var(--transition);
+}
+.qtyBtn:hover { background: var(--borda); color: var(--texto); }
+.qtyNum {
+  width: 28px;
+  text-align: center;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--texto);
+}
+
+.removeBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  color: var(--texto-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+}
+.removeBtn:hover { color: var(--erro); background: var(--erro-bg); }

@@ -1,0 +1,52 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--borda);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.box {
+  background: linear-gradient(
+    90deg,
+    var(--bg3) 25%,
+    var(--borda) 50%,
+    var(--bg3) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s infinite;
+  border-radius: 4px;
+}
+
+.image {
+  aspect-ratio: 4/5;
+  border-radius: 0;
+}
+
+.info {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.line { height: 12px; }
+.short  { width: 40%; }
+.medium { width: 70%; }
+.price  { width: 35%; height: 20px; }
+
+.btns {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.btn {
+  height: 34px;
+  flex: 1;
+  border-radius: var(--radius-full);
+}

@@ -1,0 +1,104 @@
+.page { display: flex; flex-direction: column; gap: 24px; }
+
+.pageHeader { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.pageTitle { font-size: 1.5rem; font-weight: 700; color: #e2e8f0; margin: 0; }
+.pageDate { font-size: 0.85rem; color: #64748b; }
+
+.errorBanner { background: #2a0f0f; border: 1px solid #7f1d1d; border-radius: 8px; padding: 12px 16px; color: #f87171; font-size: 0.875rem; }
+
+.statsGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+
+.statCard {
+  background: #1a1d27;
+  border: 1px solid #2d3148;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: border-color 0.15s;
+}
+.statCard:hover { border-color: #3d4166; }
+
+.statIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.statInfo { flex: 1; min-width: 0; }
+.statValue { font-size: 1.75rem; font-weight: 700; color: #e2e8f0; line-height: 1; }
+.statLabel { font-size: 0.8rem; color: #64748b; margin-top: 4px; }
+.statSub { font-size: 0.75rem; color: #475569; margin-top: 2px; }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 768px) { .grid2 { grid-template-columns: 1fr; } }
+
+.section {
+  background: #1a1d27;
+  border: 1px solid #2d3148;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.sectionHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.sectionTitle { font-size: 1rem; font-weight: 600; color: #e2e8f0; margin: 0; }
+.sectionLink { font-size: 0.8rem; color: #7c6aff; text-decoration: none; }
+.sectionLink:hover { text-decoration: underline; }
+
+.list { display: flex; flex-direction: column; gap: 2px; }
+.listRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 8px;
+  border-radius: 8px;
+  transition: background 0.15s;
+  gap: 8px;
+}
+.listRow:hover { background: #252840; }
+.listLeft { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+.listName { font-size: 0.875rem; color: #e2e8f0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.listSub { font-size: 0.75rem; color: #64748b; }
+.miniImg { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
+.miniImgPlaceholder { width: 36px; height: 36px; border-radius: 6px; background: #252840; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+
+.stockBadge { font-size: 0.8rem; font-weight: 600; padding: 3px 8px; border-radius: 6px; white-space: nowrap; }
+.stockWarn { background: #2a1f0a; color: #f59e0b; }
+.stockZero { background: #2a0f0f; color: #ef4444; }
+
+.orderRight { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.orderTotal { font-size: 0.875rem; font-weight: 600; color: #e2e8f0; }
+.statusBadge { font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+
+.prodGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+.prodCard {
+  background: #0f1117;
+  border: 1px solid #2d3148;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: border-color 0.15s;
+}
+.prodCard:hover { border-color: #3d4166; }
+.prodImgWrap { position: relative; height: 120px; background: #252840; }
+.prodImg { width: 100%; height: 100%; object-fit: cover; }
+.prodImgPlaceholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 2rem; }
+.prodName { padding: 8px 10px 2px; font-size: 0.8rem; color: #e2e8f0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prodPrice { padding: 0 10px 4px; font-size: 0.85rem; color: #7c6aff; font-weight: 600; }
+.prodStatus { padding: 0 10px 8px; font-size: 0.7rem; font-weight: 600; }
+.prodStatus.active { color: #10b981; }
+.prodStatus.inactive { color: #6b7280; }
+
+.emptyState { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 32px 16px; color: #64748b; font-size: 0.875rem; text-align: center; }
+.emptyState span { font-size: 2rem; }
+
+.skeleton { background: linear-gradient(90deg, #252840 25%, #2d3148 50%, #252840 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 6px; }
+.skeletonList { display: flex; flex-direction: column; gap: 8px; }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+.loading { color: #94a3b8; padding: 60px; text-align: center; }

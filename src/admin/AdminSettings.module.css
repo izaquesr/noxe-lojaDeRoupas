@@ -1,0 +1,20 @@
+.page { display: flex; flex-direction: column; gap: 24px; }
+.header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.title { font-size: 1.5rem; font-weight: 700; color: #e2e8f0; margin: 0; }
+.btnPrimary { background: #7c6aff; color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+.btnPrimary:hover:not(:disabled) { background: #6b5ae0; }
+.btnPrimary:disabled { opacity: 0.6; cursor: not-allowed; }
+.sections { display: flex; flex-direction: column; gap: 20px; }
+.section { background: #1a1d27; border: 1px solid #2d3148; border-radius: 12px; padding: 24px; }
+.sectionTitle { font-size: 1rem; font-weight: 600; color: #e2e8f0; margin: 0 0 20px; }
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.label { font-size: 0.8rem; font-weight: 500; color: #94a3b8; }
+.input { background: #0f1117; border: 1px solid #2d3148; border-radius: 8px; padding: 9px 12px; color: #e2e8f0; font-size: 0.9rem; outline: none; transition: border-color 0.15s; }
+.input:focus { border-color: #7c6aff; }
+.logoPreview { width: 60px; height: 60px; object-fit: contain; border-radius: 6px; border: 1px solid #2d3148; margin-top: 6px; }
+.previewWrap { margin-top: 16px; border-radius: 10px; overflow: hidden; border: 1px solid #2d3148; }
+.preview { width: 100%; max-height: 200px; object-fit: cover; display: block; }
+.loading { color: #94a3b8; padding: 60px; text-align: center; }
+.saveBottom { display: flex; justify-content: flex-end; }

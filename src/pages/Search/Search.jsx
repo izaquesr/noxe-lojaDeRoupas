@@ -1,42 +1,63 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import ProductCard from "../../components/ProductCard/ProductCard";
 import VariantModal from "../../components/VariantModal/VariantModal";
-import { searchProducts } from "../../data/products";
+import { ProductGridSkeleton } from "../../components/LoadingSkeleton/LoadingSkeleton";
+import { supabase } from "../../lib/supabase";
 import styles from "./Search.module.css";
 
 export default function Search() {
-  const [params] = useSearchParams();
-  const q = params.get("q") ?? "";
-  const results = searchProducts(q);
+  const [searchParams] = useSearchParams();
+  const q = searchParams.get("q") || "";
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [modal, setModal] = useState(null);
+
+  useEffect(() => {
+    if (!q.trim()) return;
+    setLoading(true);
+    supabase
+      .from("products")
+      .select("*")
+      .eq("status", "ativo")
+      .or(`name.ilike.%${q}%,description.ilike.%${q}%,brand.ilike.%${q}%`)
+      .then(({ data }) => {
+        setResults(data || []);
+        setLoading(false);
+      });
+  }, [q]);
+
+  const adapt = (p) => ({
+    ...p, nome: p.name, preco: p.price, precoDe: p.price_from,
+    descricao: p.description, tamanhos: p.sizes || [],
+    cores: p.colors || [], imagens: p.images || [],
+  });
 
   return (
     <div className="page-wrapper">
       <div className="container">
-        <nav className={styles.breadcrumb}>
-          <Link to="/">Início</Link> <span>›</span> <span>Busca</span>
-        </nav>
-
-        <div className={styles.head}>
+        <div className={styles.header}>
           <h1 className={styles.title}>
-            {results.length > 0
-              ? `${results.length} resultado${results.length !== 1 ? "s" : ""} para "${q}"`
-              : `Nenhum resultado para "${q}"`}
+            {q ? `Resultados para "${q}"` : "Busca"}
           </h1>
+          {!loading && q && <p className={styles.count}>{results.length} produto{results.length !== 1 ? "s" : ""} encontrado{results.length !== 1 ? "s" : ""}</p>}
         </div>
 
-        {results.length === 0 ? (
-          <div className={styles.empty}>
-            <p>Tente buscar por outro termo ou explore nossas categorias.</p>
+        {loading ? (
+          <ProductGridSkeleton count={8} />
+        ) : !q ? (
+          <p className={styles.empty}>Digite algo para buscar.</p>
+        ) : results.length === 0 ? (
+          <div className={styles.noResults}>
+            <p>Nenhum produto encontrado para "{q}".</p>
             <Link to="/" className="btn btn-primary">Ver todos os produtos</Link>
           </div>
         ) : (
           <div className={styles.grid}>
-            {results.map((p) => (
+            {results.map(p => (
               <ProductCard
                 key={p.id}
-                product={p}
+                product={adapt(p)}
                 onAddToCart={(prod) => setModal({ product: prod, mode: "cart" })}
                 onBuyNow={(prod) => setModal({ product: prod, mode: "buy" })}
               />
@@ -44,14 +65,7 @@ export default function Search() {
           </div>
         )}
       </div>
-
-      {modal && (
-        <VariantModal
-          product={modal.product}
-          mode={modal.mode}
-          onClose={() => setModal(null)}
-        />
-      )}
+      {modal && <VariantModal product={modal.product} mode={modal.mode} onClose={() => setModal(null)} />}
     </div>
   );
 }

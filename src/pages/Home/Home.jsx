@@ -4,32 +4,33 @@ import Hero from "../../components/Hero/Hero";
 import ProductCard from "../../components/ProductCard/ProductCard";
 import VariantModal from "../../components/VariantModal/VariantModal";
 import { ProductGridSkeleton } from "../../components/LoadingSkeleton/LoadingSkeleton";
-import { products, getDestaques, getNovidades } from "../../data/products";
-import { categoryLabel } from "../../utils/helpers";
+import { supabase } from "../../lib/supabase";
 import styles from "./Home.module.css";
-
-const CATEGORIES = [
-  { slug: "camisetas",   label: "Camisetas",   emoji: "👕" },
-  { slug: "calcas",      label: "Calças",      emoji: "👖" },
-  { slug: "tenis",       label: "Tênis",       emoji: "👟" },
-  { slug: "jaquetas",    label: "Jaquetas",    emoji: "🧥" },
-  { slug: "acessorios",  label: "Acessórios",  emoji: "🎒" },
-  { slug: "relogios",    label: "Relógios",    emoji: "⌚" },
-  { slug: "eletronicos", label: "Eletrônicos", emoji: "🎧" },
-];
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
-  const [modal, setModal] = useState(null); // { product, mode }
+  const [destaques, setDestaques] = useState([]);
+  const [novidades, setNovidades] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [modal, setModal] = useState(null);
   const revealRefs = useRef([]);
 
-  // Simula carregamento
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 600);
-    return () => clearTimeout(t);
+    loadData();
   }, []);
 
-  // Scroll reveal
+  async function loadData() {
+    const [{ data: featured }, { data: recent }, { data: cats }] = await Promise.all([
+      supabase.from("products").select("*").eq("status", "ativo").eq("featured", true).order("created_at", { ascending: false }).limit(8),
+      supabase.from("products").select("*").eq("status", "ativo").order("created_at", { ascending: false }).limit(4),
+      supabase.from("categories").select("*").order("name"),
+    ]);
+    setDestaques(featured || []);
+    setNovidades(recent || []);
+    setCategories(cats || []);
+    setLoading(false);
+  }
+
   useEffect(() => {
     if (loading) return;
     const observer = new IntersectionObserver(
@@ -42,30 +43,42 @@ export default function Home() {
 
   const addRef = (el) => { if (el && !revealRefs.current.includes(el)) revealRefs.current.push(el); };
 
-  const openModal = (product, mode) => setModal({ product, mode });
-  const closeModal = () => setModal(null);
-
-  const destaques = getDestaques().slice(0, 8);
-  const novidades = getNovidades().slice(0, 4);
+  // Adapter for products from Supabase (snake_case) to components (camelCase)
+  const adapt = (p) => ({
+    ...p,
+    nome: p.name,
+    preco: p.price,
+    precoDe: p.price_from,
+    descricao: p.description,
+    categoria: p.category_slug || p.categories?.slug,
+    tamanhos: p.sizes || [],
+    cores: p.colors || [],
+    imagens: p.images || [],
+    destaque: p.featured,
+    novo: p.is_new,
+    avaliacao: p.rating,
+    avaliacoes: p.reviews_count,
+  });
 
   return (
     <div className="page-wrapper">
-      {/* Hero */}
       <Hero />
 
-      {/* Categories strip */}
-      <section className={styles.categoriesSection} ref={addRef}>
-        <div className="container">
-          <div className={styles.categoriesGrid}>
-            {CATEGORIES.map((c) => (
-              <Link key={c.slug} to={`/categoria/${c.slug}`} className={styles.catCard}>
-                <span className={styles.catEmoji}>{c.emoji}</span>
-                <span className={styles.catLabel}>{c.label}</span>
-              </Link>
-            ))}
+      {/* Categories */}
+      {categories.length > 0 && (
+        <section className={styles.categoriesSection} ref={addRef}>
+          <div className="container">
+            <div className={styles.categoriesGrid}>
+              {categories.map((c) => (
+                <Link key={c.id} to={`/categoria/${c.slug}`} className={styles.catCard}>
+                  <span className={styles.catEmoji}>{c.emoji || "📦"}</span>
+                  <span className={styles.catLabel}>{c.name}</span>
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Destaques */}
       <section className={styles.section} id="destaques" ref={addRef}>
@@ -75,19 +88,21 @@ export default function Home() {
               <h2 className="section-title">Destaques</h2>
               <p className="section-subtitle">Os produtos mais amados da loja</p>
             </div>
-            <Link to="/categoria/camisetas" className="section-link">Ver tudo →</Link>
           </div>
-
           {loading ? (
             <ProductGridSkeleton count={8} />
+          ) : destaques.length === 0 ? (
+            <p style={{ color: "var(--texto-secundario)", textAlign: "center", padding: "40px 0" }}>
+              Nenhum produto em destaque ainda.
+            </p>
           ) : (
             <div className={styles.grid}>
               {destaques.map((p, i) => (
                 <div key={p.id} className={styles.gridItem} style={{ animationDelay: `${i * 60}ms` }}>
                   <ProductCard
-                    product={p}
-                    onAddToCart={(prod) => openModal(prod, "cart")}
-                    onBuyNow={(prod) => openModal(prod, "buy")}
+                    product={adapt(p)}
+                    onAddToCart={(prod) => setModal({ product: prod, mode: "cart" })}
+                    onBuyNow={(prod) => setModal({ product: prod, mode: "buy" })}
                   />
                 </div>
               ))}
@@ -101,34 +116,36 @@ export default function Home() {
         <div className="container">
           <div className={styles.bannerInner}>
             <div className={styles.bannerText}>
-              <span className={styles.bannerEye}>Lançamento</span>
+              <span className={styles.bannerEye}>Promoção</span>
               <h2 className={styles.bannerTitle}>Frete grátis<br />em pedidos acima de R$&nbsp;299</h2>
-              <p className={styles.bannerSub}>Para todo o Brasil. Entregamos em até 7 dias úteis.</p>
+              <p className={styles.bannerSub}>Para todo o Brasil.</p>
             </div>
-            <Link to="/categoria/camisetas" className="btn btn-primary btn-lg">
-              Aproveitar agora
-            </Link>
+            {categories[0] && (
+              <Link to={`/categoria/${categories[0].slug}`} className="btn btn-primary btn-lg">
+                Aproveitar agora
+              </Link>
+            )}
           </div>
         </div>
       </section>
 
       {/* Novidades */}
-      {novidades.length > 0 && (
+      {!loading && novidades.length > 0 && (
         <section className={styles.section} ref={addRef}>
           <div className="container">
             <div className="section-header">
               <div>
                 <h2 className="section-title">Novidades</h2>
-                <p className="section-subtitle">Recém chegados na loja</p>
+                <p className="section-subtitle">Recém chegados</p>
               </div>
             </div>
             <div className={styles.grid}>
               {novidades.map((p, i) => (
                 <div key={p.id} className={styles.gridItem} style={{ animationDelay: `${i * 60}ms` }}>
                   <ProductCard
-                    product={p}
-                    onAddToCart={(prod) => openModal(prod, "cart")}
-                    onBuyNow={(prod) => openModal(prod, "buy")}
+                    product={adapt(p)}
+                    onAddToCart={(prod) => setModal({ product: prod, mode: "cart" })}
+                    onBuyNow={(prod) => setModal({ product: prod, mode: "buy" })}
                   />
                 </div>
               ))}
@@ -137,12 +154,11 @@ export default function Home() {
         </section>
       )}
 
-      {/* Modal */}
       {modal && (
         <VariantModal
           product={modal.product}
           mode={modal.mode}
-          onClose={closeModal}
+          onClose={() => setModal(null)}
         />
       )}
     </div>

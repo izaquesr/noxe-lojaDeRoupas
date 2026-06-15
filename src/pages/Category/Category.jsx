@@ -1,80 +1,87 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import ProductCard from "../../components/ProductCard/ProductCard";
 import VariantModal from "../../components/VariantModal/VariantModal";
 import { ProductGridSkeleton } from "../../components/LoadingSkeleton/LoadingSkeleton";
-import { products } from "../../data/products";
-import { categoryLabel } from "../../utils/helpers";
+import { supabase } from "../../lib/supabase";
 import styles from "./Category.module.css";
-
-const SORTS = [
-  { value: "destaque",   label: "Destaques" },
-  { value: "menor",      label: "Menor Preço" },
-  { value: "maior",      label: "Maior Preço" },
-  { value: "novo",       label: "Novidades" },
-  { value: "avaliacao",  label: "Melhor Avaliação" },
-];
 
 export default function Category() {
   const { slug } = useParams();
-  const [sort, setSort] = useState("destaque");
+  const [products, setProducts] = useState([]);
+  const [category, setCategory] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(null);
+  const [sort, setSort] = useState("created_at");
 
-  const list = useMemo(() => {
-    let arr = products.filter((p) => p.categoria === slug);
-    switch (sort) {
-      case "menor":     arr = [...arr].sort((a, b) => a.preco - b.preco); break;
-      case "maior":     arr = [...arr].sort((a, b) => b.preco - a.preco); break;
-      case "novo":      arr = [...arr].sort((a, b) => (b.novo ? 1 : 0) - (a.novo ? 1 : 0)); break;
-      case "avaliacao": arr = [...arr].sort((a, b) => (b.avaliacao ?? 0) - (a.avaliacao ?? 0)); break;
-      default:          arr = [...arr].sort((a, b) => (b.destaque ? 1 : 0) - (a.destaque ? 1 : 0));
-    }
-    return arr;
+  useEffect(() => {
+    loadData();
   }, [slug, sort]);
+
+  async function loadData() {
+    setLoading(true);
+    const { data: cats } = await supabase.from("categories").select("*").eq("slug", slug).single();
+    setCategory(cats);
+
+    if (cats) {
+      let query = supabase.from("products").select("*").eq("status", "ativo").eq("category_id", cats.id);
+      if (sort === "price_asc") query = query.order("price", { ascending: true });
+      else if (sort === "price_desc") query = query.order("price", { ascending: false });
+      else query = query.order("created_at", { ascending: false });
+
+      const { data: prods } = await query;
+      setProducts(prods || []);
+    }
+    setLoading(false);
+  }
+
+  const adapt = (p) => ({
+    ...p,
+    nome: p.name, preco: p.price, precoDe: p.price_from,
+    descricao: p.description, tamanhos: p.sizes || [],
+    cores: p.colors || [], imagens: p.images || [],
+  });
 
   return (
     <div className="page-wrapper">
       <div className="container">
-        {/* Breadcrumb */}
         <nav className={styles.breadcrumb}>
           <Link to="/">Início</Link>
           <span>›</span>
-          <span>{categoryLabel(slug)}</span>
+          <span>{category?.name || slug}</span>
         </nav>
 
-        {/* Header */}
-        <div className={styles.pageHead}>
+        <div className={styles.header}>
           <div>
-            <h1 className={styles.pageTitle}>{categoryLabel(slug)}</h1>
-            <p className={styles.pageCount}>{list.length} produto{list.length !== 1 ? "s" : ""}</p>
+            <h1 className={styles.title}>
+              {category?.emoji && <span className={styles.emoji}>{category.emoji}</span>}
+              {category?.name || slug}
+            </h1>
+            {!loading && <p className={styles.count}>{products.length} produto{products.length !== 1 ? "s" : ""}</p>}
           </div>
-          <select
-            value={sort}
-            onChange={(e) => setSort(e.target.value)}
-            className={styles.sortSelect}
-          >
-            {SORTS.map((s) => (
-              <option key={s.value} value={s.value}>{s.label}</option>
-            ))}
+          <select className={styles.sort} value={sort} onChange={e => setSort(e.target.value)}>
+            <option value="created_at">Mais recentes</option>
+            <option value="price_asc">Menor preço</option>
+            <option value="price_desc">Maior preço</option>
           </select>
         </div>
 
-        {/* Grid */}
-        {list.length === 0 ? (
+        {loading ? (
+          <ProductGridSkeleton count={8} />
+        ) : products.length === 0 ? (
           <div className={styles.empty}>
             <p>Nenhum produto nesta categoria ainda.</p>
-            <Link to="/" className="btn btn-primary">Voltar ao início</Link>
+            <Link to="/" className="btn btn-primary">Ver todos</Link>
           </div>
         ) : (
           <div className={styles.grid}>
-            {list.map((p, i) => (
-              <div key={p.id} style={{ animationDelay: `${i * 50}ms` }}>
-                <ProductCard
-                  product={p}
-                  onAddToCart={(prod) => setModal({ product: prod, mode: "cart" })}
-                  onBuyNow={(prod) => setModal({ product: prod, mode: "buy" })}
-                />
-              </div>
+            {products.map((p) => (
+              <ProductCard
+                key={p.id}
+                product={adapt(p)}
+                onAddToCart={(prod) => setModal({ product: prod, mode: "cart" })}
+                onBuyNow={(prod) => setModal({ product: prod, mode: "buy" })}
+              />
             ))}
           </div>
         )}

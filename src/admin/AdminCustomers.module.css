@@ -1,0 +1,14 @@
+.page { display: flex; flex-direction: column; gap: 20px; }
+.title { font-size: 1.5rem; font-weight: 700; color: #e2e8f0; margin: 0; }
+.loading { color: #94a3b8; padding: 40px; text-align: center; }
+.searchInput { max-width: 360px; background: #1a1d27; border: 1px solid #2d3148; border-radius: 8px; padding: 9px 14px; color: #e2e8f0; font-size: 0.9rem; outline: none; }
+.searchInput:focus { border-color: #7c6aff; }
+.searchInput::placeholder { color: #475569; }
+.tableWrap { overflow-x: auto; border: 1px solid #2d3148; border-radius: 12px; }
+.table { width: 100%; border-collapse: collapse; }
+.table th { background: #1a1d27; padding: 12px 16px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #64748b; text-transform: uppercase; border-bottom: 1px solid #2d3148; }
+.table td { padding: 12px 16px; border-bottom: 1px solid #1e2333; }
+.table tr:last-child td { border-bottom: none; }
+.table tr:hover td { background: #1a1d27; }
+.cell { font-size: 0.875rem; color: #94a3b8; }
+.empty { text-align: center; color: #475569; padding: 32px; }

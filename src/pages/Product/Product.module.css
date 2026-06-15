@@ -192,3 +192,30 @@
 @media (max-width: 640px) {
   .preco { font-size: 1.5rem; }
 }
+
+.marketplaces {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.mpBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: opacity 0.15s;
+}
+
+.mpBtn:hover { opacity: 0.85; }
+
+.ml { background: #fff159; color: #333; border: 1px solid #e6c200; }
+
+.shopee { background: #f63; color: #fff; }
+
+.brand { font-size: 0.85rem; color: var(--texto-secundario, #6b7280); margin-top: 8px; }

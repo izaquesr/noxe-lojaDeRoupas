@@ -6,6 +6,18 @@ import ProductCard from "../../components/ProductCard/ProductCard";
 import { formatCurrency } from "../../utils/helpers";
 import styles from "./Product.module.css";
 
+const adapt = (p) => ({
+  ...p,
+  nome: p.name ?? "",
+  preco: p.price ?? 0,
+  precoDe: p.price_from ?? null,
+  descricao: p.description ?? "",
+  tamanhos: Array.isArray(p.sizes) ? p.sizes : [],
+  cores: Array.isArray(p.colors) ? p.colors : [],
+  imagens: Array.isArray(p.images) ? p.images : (p.images ? [p.images] : []),
+  categoria: p.categories?.slug ?? null,
+});
+
 export default function Product() {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
@@ -14,23 +26,40 @@ export default function Product() {
   const [activeImg, setActiveImg] = useState(0);
   const [modal, setModal] = useState(null);
 
-  useEffect(() => {
-    loadProduct();
-  }, [id]);
+  useEffect(() => { loadProduct(); }, [id]);
 
   async function loadProduct() {
     setLoading(true);
-    const { data: p } = await supabase.from("products").select("*, categories(name,slug)").eq("id", id).single();
+    const { data: p, error } = await supabase
+      .from("products")
+      .select("*, categories(name,slug)")
+      .eq("id", id)
+      .single();
+
+    if (error) console.warn("Product error:", error.message);
+
     if (p) {
       setProduct(p);
       setActiveImg(0);
-      const { data: rel } = await supabase.from("products").select("*").eq("category_id", p.category_id).eq("status","ativo").neq("id", p.id).limit(4);
-      setRelated(rel || []);
+      if (p.category_id) {
+        const { data: rel } = await supabase
+          .from("products")
+          .select("*")
+          .eq("category_id", p.category_id)
+          .eq("status", "ativo")
+          .neq("id", p.id)
+          .limit(4);
+        setRelated(Array.isArray(rel) ? rel : []);
+      }
     }
     setLoading(false);
   }
 
-  if (loading) return <div className="page-wrapper"><div className="container" style={{paddingTop:80,textAlign:"center"}}>Carregando...</div></div>;
+  if (loading) return (
+    <div className="page-wrapper">
+      <div className="container" style={{ paddingTop: 80, textAlign: "center" }}>Carregando...</div>
+    </div>
+  );
 
   if (!product) return (
     <div className="page-wrapper">
@@ -41,12 +70,6 @@ export default function Product() {
     </div>
   );
 
-  const adapt = (p) => ({
-    ...p, nome: p.name, preco: p.price, precoDe: p.price_from,
-    descricao: p.description, tamanhos: p.sizes || [],
-    cores: p.colors || [], imagens: p.images || [],
-  });
-
   const p = adapt(product);
   const discount = p.precoDe ? Math.round(((p.precoDe - p.preco) / p.precoDe) * 100) : null;
 
@@ -56,17 +79,26 @@ export default function Product() {
         <nav className={styles.breadcrumb}>
           <Link to="/">Início</Link>
           <span>›</span>
-          {product.categories && <><Link to={`/categoria/${product.categories.slug}`}>{product.categories.name}</Link><span>›</span></>}
+          {product.categories && (
+            <>
+              <Link to={`/categoria/${product.categories.slug}`}>{product.categories.name}</Link>
+              <span>›</span>
+            </>
+          )}
           <span>{p.nome}</span>
         </nav>
 
         <div className={styles.layout}>
           <div className={styles.gallery}>
             <div className={styles.mainImg}>
-              <img src={p.imagens?.[activeImg] || p.imagens?.[0]} alt={p.nome} loading="eager" />
+              {p.imagens.length > 0 ? (
+                <img src={p.imagens[activeImg] ?? p.imagens[0]} alt={p.nome} loading="eager" />
+              ) : (
+                <div style={{ width: "100%", height: 400, background: "#1a1d27", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "4rem", borderRadius: 12 }}>📦</div>
+              )}
               {discount && <span className={`badge badge-sale ${styles.badge}`}>-{discount}%</span>}
             </div>
-            {p.imagens?.length > 1 && (
+            {p.imagens.length > 1 && (
               <div className={styles.thumbs}>
                 {p.imagens.map((src, i) => (
                   <button key={i} className={`${styles.thumb} ${i === activeImg ? styles.active : ""}`} onClick={() => setActiveImg(i)}>
@@ -87,7 +119,6 @@ export default function Product() {
             </div>
 
             {p.descricao && <p className={styles.desc}>{p.descricao}</p>}
-
             {product.brand && <p className={styles.brand}>Marca: <strong>{product.brand}</strong></p>}
 
             <div className={styles.actions}>

@@ -6,6 +6,17 @@ import { ProductGridSkeleton } from "../../components/LoadingSkeleton/LoadingSke
 import { supabase } from "../../lib/supabase";
 import styles from "./Search.module.css";
 
+const adapt = (p) => ({
+  ...p,
+  nome: p.name ?? "",
+  preco: p.price ?? 0,
+  precoDe: p.price_from ?? null,
+  descricao: p.description ?? "",
+  tamanhos: Array.isArray(p.sizes) ? p.sizes : [],
+  cores: Array.isArray(p.colors) ? p.colors : [],
+  imagens: Array.isArray(p.images) ? p.images : (p.images ? [p.images] : []),
+});
+
 export default function Search() {
   const [searchParams] = useSearchParams();
   const q = searchParams.get("q") || "";
@@ -14,24 +25,19 @@ export default function Search() {
   const [modal, setModal] = useState(null);
 
   useEffect(() => {
-    if (!q.trim()) return;
+    if (!q.trim()) { setResults([]); return; }
     setLoading(true);
     supabase
       .from("products")
       .select("*")
       .eq("status", "ativo")
       .or(`name.ilike.%${q}%,description.ilike.%${q}%,brand.ilike.%${q}%`)
-      .then(({ data }) => {
-        setResults(data || []);
+      .then(({ data, error }) => {
+        if (error) console.warn("Search error:", error.message);
+        setResults(Array.isArray(data) ? data : []);
         setLoading(false);
       });
   }, [q]);
-
-  const adapt = (p) => ({
-    ...p, nome: p.name, preco: p.price, precoDe: p.price_from,
-    descricao: p.description, tamanhos: p.sizes || [],
-    cores: p.colors || [], imagens: p.images || [],
-  });
 
   return (
     <div className="page-wrapper">
@@ -40,7 +46,11 @@ export default function Search() {
           <h1 className={styles.title}>
             {q ? `Resultados para "${q}"` : "Busca"}
           </h1>
-          {!loading && q && <p className={styles.count}>{results.length} produto{results.length !== 1 ? "s" : ""} encontrado{results.length !== 1 ? "s" : ""}</p>}
+          {!loading && q && (
+            <p className={styles.count}>
+              {results.length} produto{results.length !== 1 ? "s" : ""} encontrado{results.length !== 1 ? "s" : ""}
+            </p>
+          )}
         </div>
 
         {loading ? (

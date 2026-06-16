@@ -21,6 +21,7 @@ let _addToast = null
 export function setToastHandler(fn) { _addToast = fn }
 export function toast(message, type = 'success') {
   if (_addToast) _addToast(message, type)
+  else console.log(`[toast/${type}]`, message)
 }
 
 export function useToast() {
@@ -40,4 +41,10 @@ export function useToast() {
   }, [])
 
   return { toasts, addToast, removeToast }
+}
+
+// Componente global montado uma única vez no main.jsx
+export function ToastWrapper() {
+  const { toasts, removeToast } = useToast()
+  return <Toast toasts={toasts} removeToast={removeToast} />
 }

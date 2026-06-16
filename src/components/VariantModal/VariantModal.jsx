@@ -3,16 +3,6 @@ import { useCart } from "../../context/CartContext";
 import { formatCurrency, hasSizes, categoryLabel } from "../../utils/helpers";
 import styles from "./VariantModal.module.css";
 
-/**
- * Modal de seleção de variações (cor + tamanho).
- * Aparece ao clicar em "Comprar" ou "Adicionar ao Carrinho".
- *
- * Props:
- *  product   — objeto do produto
- *  mode      — "cart" | "buy"
- *  onClose   — callback para fechar
- *  onSuccess — callback após ação bem-sucedida
- */
 export default function VariantModal({ product, mode = "cart", onClose, onSuccess }) {
   const { addItem, setIsOpen } = useCart();
   const [cor, setCor] = useState("");
@@ -20,26 +10,26 @@ export default function VariantModal({ product, mode = "cart", onClose, onSucces
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
 
-  // Fecha com Escape
   useEffect(() => {
     const handler = (e) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  // Bloqueia scroll do body
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = ""; };
   }, []);
 
   const needsSize = hasSizes(product);
+  const hasCores = Array.isArray(product.cores) && product.cores.length > 0;
 
   const handleConfirm = () => {
-    if (!cor) { setError("Selecione uma cor."); return; }
+    // Só exige cor se o produto tem cores cadastradas
+    if (hasCores && !cor) { setError("Selecione uma cor."); return; }
     if (needsSize && !tamanho) { setError("Selecione um tamanho."); return; }
 
-    addItem(product, cor, needsSize ? tamanho : null);
+    addItem(product, hasCores ? cor : null, needsSize ? tamanho : null);
 
     if (mode === "buy") {
       onClose();
@@ -71,8 +61,8 @@ export default function VariantModal({ product, mode = "cart", onClose, onSucces
         </div>
 
         <div className={styles.body}>
-          {/* Cores */}
-          {product.cores?.length > 0 && (
+          {/* Cores — só exibe se tiver cores cadastradas */}
+          {hasCores && (
             <div className={styles.section}>
               <label className={styles.label}>
                 Cor
@@ -113,7 +103,13 @@ export default function VariantModal({ product, mode = "cart", onClose, onSucces
             </div>
           )}
 
-          {/* Error */}
+          {/* Mensagem quando produto não tem variações */}
+          {!hasCores && !needsSize && (
+            <p style={{ color: '#94a3b8', fontSize: '0.9rem', textAlign: 'center', padding: '8px 0' }}>
+              Produto sem variações. Clique em confirmar para adicionar.
+            </p>
+          )}
+
           {error && (
             <p className={styles.error}>
               <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">

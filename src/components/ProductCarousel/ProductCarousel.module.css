@@ -6,25 +6,58 @@
   cursor: grab;
   background: var(--bg3);
   aspect-ratio: 4/5;
+  width: 100%;
 }
 .carousel:active { cursor: grabbing; }
+
+/* Placeholder sem imagem */
+.placeholder {
+  aspect-ratio: 4/5;
+  width: 100%;
+  background: var(--bg3);
+  border-radius: var(--radius) var(--radius) 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--texto-muted);
+}
 
 .track {
   display: flex;
   height: 100%;
+  width: 100%;
   transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   will-change: transform;
 }
 
+/* CRÍTICO: cada slide precisa de flex: 0 0 100% */
 .slide {
   flex: 0 0 100%;
+  width: 100%;
   height: 100%;
+  overflow: hidden;
+  position: relative;
 }
+
 .slide img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   pointer-events: none;
+  display: block;
+}
+
+/* Estado de erro de imagem */
+.imgError {
+  background: var(--bg3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.imgError::after {
+  content: "📷";
+  font-size: 2rem;
+  opacity: 0.3;
 }
 
 /* Arrows */

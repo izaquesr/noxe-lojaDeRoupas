@@ -5,6 +5,7 @@ import { formatCurrency, categoryLabel } from "../../utils/helpers";
 import styles from "./ProductCard.module.css";
 
 export default function ProductCard({ product, onAddToCart, onBuyNow }) {
+  console.log("PRODUCT CARD:", product)
   const [added, setAdded] = useState(false);
 
   const handleAdd = (e) => {
@@ -21,17 +22,23 @@ export default function ProductCard({ product, onAddToCart, onBuyNow }) {
     onBuyNow(product);
   };
 
-  const discount = product.precoDe
-    ? Math.round(((product.precoDe - product.preco) / product.precoDe) * 100)
+  const discount = product.price_from
+    ? Math.round(((product.price_from - product.price) / product.price_from) * 100)
     : null;
 
   return (
     <article className={styles.card}>
       {/* Image carousel */}
-      <Link to={`/produto/${product.id}`} className={styles.imageWrap} tabIndex={-1}>
-        <ProductCarousel images={product.imagens} alt={product.nome} />
+      <Link
+        to={`/produto/${product.id}`}
+        className={styles.imageWrap}
+        tabIndex={-1}
+      >
+        <ProductCarousel
+          images={Array.isArray(product.images) ? product.images : []}
+          alt={product.name}
+        />
 
-        {/* Badges */}
         <div className={styles.badges}>
           {product.novo && <span className="badge badge-new">Novo</span>}
           {discount && <span className="badge badge-sale">-{discount}%</span>}
@@ -41,8 +48,8 @@ export default function ProductCard({ product, onAddToCart, onBuyNow }) {
       {/* Info */}
       <div className={styles.info}>
         <Link to={`/produto/${product.id}`}>
-          <p className={styles.category}>{categoryLabel(product.categoria)}</p>
-          <h3 className={styles.name}>{product.nome}</h3>
+          <p className={styles.category}>{categoryLabel(product.category_id)}</p>
+          <h3 className={styles.name}>{product.name}</h3>
         </Link>
 
         {/* Rating */}
@@ -57,20 +64,27 @@ export default function ProductCard({ product, onAddToCart, onBuyNow }) {
 
         {/* Price */}
         <div className={styles.priceRow}>
-          {product.precoDe && (
-            <span className={styles.priceDe}>{formatCurrency(product.precoDe)}</span>
+          {product.price_from && (
+            <span className={styles.price_from}>{formatCurrency(product.price_from)}</span>
           )}
-          <span className={styles.price}>{formatCurrency(product.preco)}</span>
+          <span className={styles.price}>{formatCurrency(product.price)}</span>
         </div>
 
         {/* Colors */}
-        {product.cores?.length > 0 && (
+        {Array.isArray(product.colors) && product.colors.length > 0 && (
           <div className={styles.colorDots}>
-            {product.cores.slice(0, 4).map((c) => (
-              <span key={c} className={styles.colorDot} title={c} />
+            {product.colors.slice(0, 4).map((c, index) => (
+              <span
+                key={index}
+                className={styles.colorDot}
+                title={c}
+              />
             ))}
-            {product.cores.length > 4 && (
-              <span className={styles.colorMore}>+{product.cores.length - 4}</span>
+
+            {product.colors.length > 4 && (
+              <span className={styles.colorMore}>
+                +{product.colors.length - 4}
+              </span>
             )}
           </div>
         )}
@@ -84,14 +98,14 @@ export default function ProductCard({ product, onAddToCart, onBuyNow }) {
             {added ? (
               <>
                 <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3" viewBox="0 0 24 24">
-                  <path d="M20 6L9 17l-5-5"/>
+                  <path d="M20 6L9 17l-5-5" />
                 </svg>
                 Adicionado
               </>
             ) : (
               <>
                 <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 01-8 0"/>
+                  <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 01-8 0" />
                 </svg>
                 Adicionar
               </>

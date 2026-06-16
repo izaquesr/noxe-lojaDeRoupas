@@ -7,28 +7,61 @@ import { ProductGridSkeleton } from "../../components/LoadingSkeleton/LoadingSke
 import { supabase } from "../../lib/supabase";
 import styles from "./Home.module.css";
 
+// Adapter: Supabase (snake_case) → componentes (camelCase)
+const adapt = (p) => ({
+  ...p,
+  nome: p.name ?? "",
+  preco: p.price ?? 0,
+  precoDe: p.price_from ?? null,
+  descricao: p.description ?? "",
+  categoria: p.categories?.slug ?? p.category_slug ?? null,
+  tamanhos: Array.isArray(p.sizes) ? p.sizes : [],
+  cores: Array.isArray(p.colors) ? p.colors : [],
+  imagens: Array.isArray(p.images) ? p.images : (p.images ? [p.images] : []),
+  destaque: p.featured ?? false,
+  novo: p.is_new ?? false,
+  avaliacao: p.rating ?? null,
+  avaliacoes: p.reviews_count ?? null,
+});
+
 export default function Home() {
   const [loading, setLoading] = useState(true);
   const [destaques, setDestaques] = useState([]);
   const [novidades, setNovidades] = useState([]);
   const [categories, setCategories] = useState([]);
   const [modal, setModal] = useState(null);
+  const [error, setError] = useState(null);
   const revealRefs = useRef([]);
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useEffect(() => { loadData(); }, []);
 
   async function loadData() {
-    const [{ data: featured }, { data: recent }, { data: cats }] = await Promise.all([
-      supabase.from("products").select("*").eq("status", "ativo").eq("featured", true).order("created_at", { ascending: false }).limit(8),
-      supabase.from("products").select("*").eq("status", "ativo").order("created_at", { ascending: false }).limit(4),
-      supabase.from("categories").select("*").order("name"),
-    ]);
-    setDestaques(featured || []);
-    setNovidades(recent || []);
-    setCategories(cats || []);
-    setLoading(false);
+    setLoading(true);
+    setError(null);
+    try {
+      const [
+        { data: featured, error: e1 },
+        { data: recent, error: e2 },
+        { data: cats, error: e3 },
+      ] = await Promise.all([
+        supabase.from("products").select("*").eq("status", "ativo").eq("featured", true).order("created_at", { ascending: false }),
+        supabase.from("products").select("*").eq("status", "ativo").order("created_at", { ascending: false }),
+        supabase.from("categories").select("*").order("name"),
+      ]);
+
+      if (e1) console.warn("Destaques:", e1.message);
+      if (e2) console.warn("Novidades:", e2.message);
+      if (e3) console.warn("Categorias:", e3.message);
+
+      setDestaques(Array.isArray(featured) ? featured : []);
+      setNovidades(Array.isArray(recent) ? recent : []);
+      setCategories(Array.isArray(cats) ? cats : []);
+    } catch (err) {
+      console.error("Home loadData error:", err);
+      setError("Não foi possível carregar os produtos. Verifique a configuração do Supabase.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -43,26 +76,15 @@ export default function Home() {
 
   const addRef = (el) => { if (el && !revealRefs.current.includes(el)) revealRefs.current.push(el); };
 
-  // Adapter for products from Supabase (snake_case) to components (camelCase)
-  const adapt = (p) => ({
-    ...p,
-    nome: p.name,
-    preco: p.price,
-    precoDe: p.price_from,
-    descricao: p.description,
-    categoria: p.category_slug || p.categories?.slug,
-    tamanhos: p.sizes || [],
-    cores: p.colors || [],
-    imagens: p.images || [],
-    destaque: p.featured,
-    novo: p.is_new,
-    avaliacao: p.rating,
-    avaliacoes: p.reviews_count,
-  });
-
   return (
     <div className="page-wrapper">
       <Hero />
+
+      {error && (
+        <div style={{ background: "#2a0f0f", border: "1px solid #7f1d1d", borderRadius: 8, padding: "12px 24px", margin: "24px auto", maxWidth: 800, color: "#f87171", fontSize: "0.9rem" }}>
+          ⚠️ {error}
+        </div>
+      )}
 
       {/* Categories */}
       {categories.length > 0 && (

@@ -1,11 +1,9 @@
 import { useCart } from "../../context/CartContext";
 import { formatCurrency } from "../../utils/helpers";
-import { products } from "../../data/products";
 import styles from "./CartItem.module.css";
 
 export default function CartItem({ item }) {
   const { removeItem, updateQty } = useCart();
-  const product = products.find((p) => p.id === item.id);
 
   return (
     <div className={styles.item}>

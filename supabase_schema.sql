@@ -217,3 +217,19 @@ CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id);
 CREATE INDEX IF NOT EXISTS idx_products_created ON products(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
 CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at DESC);
+
+
+-- ════════════════════════════════════════════
+-- LIMPEZA DE IMAGENS INVÁLIDAS
+-- Execute se o produto tiver imagens quebradas acumuladas
+-- ════════════════════════════════════════════
+
+-- Remove URLs inválidas do array images de todos os produtos
+-- Mantém apenas URLs que começam com 'http'
+UPDATE products
+SET images = ARRAY(
+  SELECT unnest(images)
+  WHERE unnest LIKE 'http%'
+)
+WHERE images IS NOT NULL
+  AND array_length(images, 1) > 0;

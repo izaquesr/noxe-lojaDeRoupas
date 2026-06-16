@@ -41,12 +41,26 @@ export default function Checkout() {
 
     setLoading(true);
 
-    // Save to Supabase
+    // Normaliza itens — CartContext salva: nome, preco, quantidade, cor, tamanho
+    const normalizedItems = items.map(i => ({
+      id: i.id,
+      name: i.nome || i.name || "",
+      price: i.preco ?? i.price ?? 0,
+      qty: i.quantidade ?? i.qty ?? 1,
+      size: i.tamanho ?? i.size ?? null,
+      color: i.cor ?? i.color ?? null,
+    }));
+
+    const orderTotal = normalizedItems.reduce((s, i) => s + i.price * i.qty, 0);
+
     try {
-      // Upsert customer
+      // Upsert customer por telefone
       const { data: custData } = await supabase
         .from("customers")
-        .upsert({ name: form.name, phone: form.phone }, { onConflict: "phone", ignoreDuplicates: false })
+        .upsert(
+          { name: form.name, phone: form.phone },
+          { onConflict: "phone", ignoreDuplicates: false }
+        )
         .select()
         .single();
 
@@ -57,13 +71,10 @@ export default function Checkout() {
         zipcode: delivery === "entrega" ? form.zipcode : null,
         address: delivery === "entrega" ? form.address : null,
         number: delivery === "entrega" ? form.number : null,
-        complement: form.complement,
+        complement: form.complement || null,
         delivery_type: delivery,
-        items: items.map(i => ({
-          id: i.id, name: i.name || i.nome, price: i.price || i.preco,
-          qty: i.qty, size: i.size, color: i.color
-        })),
-        total,
+        items: normalizedItems,
+        total: orderTotal,
         status: "pendente",
         customer_id: custData?.id || null,
       });
@@ -72,7 +83,7 @@ export default function Checkout() {
       if (custData?.id) {
         await supabase.from("customers").update({
           total_orders: (custData.total_orders || 0) + 1,
-          total_spent: (Number(custData.total_spent) || 0) + total,
+          total_spent: (Number(custData.total_spent) || 0) + orderTotal,
           last_order: new Date().toISOString(),
         }).eq("id", custData.id);
       }
@@ -85,11 +96,11 @@ export default function Checkout() {
       ? `\n📍 *Endereço:* ${form.address}, ${form.number} ${form.complement}\n🔢 *CEP:* ${form.zipcode}`
       : "\n🏪 *Retirada na loja*";
 
-    const itemsText = items.map(i =>
-      `• ${i.name || i.nome} x${i.qty}${i.size ? ` | Tam: ${i.size}` : ""}${i.color ? ` | Cor: ${i.color}` : ""} — ${formatCurrency((i.price || i.preco) * i.qty)}`
+    const itemsText = normalizedItems.map(i =>
+      `• ${i.name} x${i.qty}${i.size ? ` | Tam: ${i.size}` : ""}${i.color ? ` | Cor: ${i.color}` : ""} — ${formatCurrency(i.price * i.qty)}`
     ).join("\n");
 
-    const msg = `🛍️ *Novo Pedido*\n\n👤 *Nome:* ${form.name}\n📱 *Telefone:* ${form.phone}${addr}\n\n*Itens:*\n${itemsText}\n\n💰 *Total: ${formatCurrency(total)}*`;
+    const msg = `🛍️ *Novo Pedido*\n\n👤 *Nome:* ${form.name}\n📱 *Telefone:* ${form.phone}${addr}\n\n*Itens:*\n${itemsText}\n\n💰 *Total: ${formatCurrency(orderTotal)}*`;
 
     clearCart();
     setLoading(false);
@@ -116,7 +127,6 @@ export default function Checkout() {
         <div className={styles.form}>
           <h1 className={styles.title}>Finalizar pedido</h1>
 
-          {/* Delivery type */}
           <div className={styles.deliveryToggle}>
             <button
               className={`${styles.toggleBtn} ${delivery === "entrega" ? styles.active : ""}`}
@@ -177,21 +187,28 @@ export default function Checkout() {
         <div className={styles.summary}>
           <h2 className={styles.summaryTitle}>Resumo</h2>
           <div className={styles.items}>
-            {items.map((item, i) => (
-              <div key={i} className={styles.item}>
-                <div>
-                  <div className={styles.itemName}>{item.name || item.nome}</div>
-                  <div className={styles.itemMeta}>
-                    Qtd: {item.qty}
-                    {item.size && ` · ${item.size}`}
-                    {item.color && ` · ${item.color}`}
+            {items.map((item, i) => {
+              const nome = item.nome || item.name || "Produto"
+              const preco = item.preco ?? item.price ?? 0
+              const quantidade = item.quantidade ?? item.qty ?? 1
+              const tamanho = item.tamanho ?? item.size ?? null
+              const cor = item.cor ?? item.color ?? null
+              return (
+                <div key={i} className={styles.item}>
+                  <div>
+                    <div className={styles.itemName}>{nome}</div>
+                    <div className={styles.itemMeta}>
+                      Qtd: {quantidade}
+                      {tamanho && ` · ${tamanho}`}
+                      {cor && ` · ${cor}`}
+                    </div>
+                  </div>
+                  <div className={styles.itemPrice}>
+                    {formatCurrency(preco * quantidade)}
                   </div>
                 </div>
-                <div className={styles.itemPrice}>
-                  {formatCurrency((item.price || item.preco) * item.qty)}
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
           <div className={styles.totalRow}>
             <span>Total</span>

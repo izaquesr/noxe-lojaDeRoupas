@@ -5,7 +5,6 @@ import { formatCurrency, categoryLabel } from "../../utils/helpers";
 import styles from "./ProductCard.module.css";
 
 export default function ProductCard({ product, onAddToCart, onBuyNow }) {
-  console.log("PRODUCT CARD:", product)
   const [added, setAdded] = useState(false);
 
   const handleAdd = (e) => {

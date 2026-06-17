@@ -15,24 +15,27 @@ const adapt = (p) => ({
   tamanhos: Array.isArray(p.sizes) ? p.sizes : [],
   cores: Array.isArray(p.colors) ? p.colors : [],
   imagens: Array.isArray(p.images) ? p.images : (p.images ? [p.images] : []),
-  categoria: p.categories?.slug ?? null,
+  categoria: p.category_slug ?? null,
 });
 
 export default function Product() {
   const { id } = useParams();
-  const [product, setProduct] = useState(null);
-  const [related, setRelated] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [product, setProduct]   = useState(null);
+  const [category, setCategory] = useState(null);
+  const [related, setRelated]   = useState([]);
+  const [loading, setLoading]   = useState(true);
   const [activeImg, setActiveImg] = useState(0);
-  const [modal, setModal] = useState(null);
+  const [modal, setModal]       = useState(null);
 
   useEffect(() => { loadProduct(); }, [id]);
 
   async function loadProduct() {
     setLoading(true);
+
+    // Busca o produto sem join
     const { data: p, error } = await supabase
       .from("products")
-      .select("*, categories(name,slug)")
+      .select("*")
       .eq("id", id)
       .single();
 
@@ -41,7 +44,17 @@ export default function Product() {
     if (p) {
       setProduct(p);
       setActiveImg(0);
+
+      // Busca a categoria separadamente se existir
       if (p.category_id) {
+        const { data: cat } = await supabase
+          .from("categories")
+          .select("id, name, slug")
+          .eq("id", p.category_id)
+          .single();
+        setCategory(cat ?? null);
+
+        // Produtos relacionados
         const { data: rel } = await supabase
           .from("products")
           .select("*")
@@ -52,6 +65,7 @@ export default function Product() {
         setRelated(Array.isArray(rel) ? rel : []);
       }
     }
+
     setLoading(false);
   }
 
@@ -79,9 +93,9 @@ export default function Product() {
         <nav className={styles.breadcrumb}>
           <Link to="/">Início</Link>
           <span>›</span>
-          {product.categories && (
+          {category && (
             <>
-              <Link to={`/categoria/${product.categories.slug}`}>{product.categories.name}</Link>
+              <Link to={`/categoria/${category.slug}`}>{category.name}</Link>
               <span>›</span>
             </>
           )}
@@ -110,7 +124,7 @@ export default function Product() {
           </div>
 
           <div className={styles.info}>
-            {product.categories && <p className={styles.cat}>{product.categories.name}</p>}
+            {category && <p className={styles.cat}>{category.name}</p>}
             <h1 className={styles.nome}>{p.nome}</h1>
 
             <div className={styles.pricing}>

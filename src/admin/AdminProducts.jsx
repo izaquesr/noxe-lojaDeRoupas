@@ -213,8 +213,6 @@ export default function AdminProducts() {
       // getPublicUrl é síncrono — retorna { data: { publicUrl } }
       const { data } = supabase.storage.from('products').getPublicUrl(filename)
 
-      console.log('UPLOAD URL:', data.publicUrl)
-
       if (!data.publicUrl) {
         console.error('[uploadImages] publicUrl vazia para', filename)
         toast('Não foi possível obter URL de "' + file.name + '"', 'error')
@@ -261,11 +259,18 @@ export default function AdminProducts() {
 
   // ── Abrir / fechar form ─────────────────────────────────────────────────────
 
+  // Recarrega categorias ao abrir o form (garante dados frescos e resolve RLS pós-login)
+  async function refreshCategories() {
+    const cats = await loadCategories()
+    if (cats.length > 0) setCategories(cats)
+  }
+
   function openCreate() {
     setForm(EMPTY_FORM)
     setEditId(null)
     setUrlInput('')
     setShowForm(true)
+    refreshCategories()
   }
 
   function openEdit(product) {
@@ -291,6 +296,7 @@ export default function AdminProducts() {
     setEditId(product.id)
     setUrlInput('')
     setShowForm(true)
+    refreshCategories()
   }
 
   function closeForm() {
@@ -307,7 +313,6 @@ export default function AdminProducts() {
 
     setSaving(true)
     const payload = buildPayload(form)
-    console.log('SALVANDO payload.images:', payload.images)
 
     try {
       if (editId) {

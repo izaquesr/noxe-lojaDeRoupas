@@ -4,14 +4,13 @@ import styles from "./ProductCarousel.module.css";
 export default function ProductCarousel({ images, alt = "" }) {
   // Normaliza: aceita array, string única ou null/undefined
   const imageList = Array.isArray(images)
-  
     ? images.filter(url => typeof url === "string" && url.startsWith("http"))
     : typeof images === "string" && images.startsWith("http")
       ? [images]
       : [];
 
   const [current, setCurrent] = useState(0);
-  const [dragging, setDragging] = useState(false);
+  const dragging = useRef(false);
   const startX = useRef(0);
   const diffX = useRef(0);
 
@@ -20,16 +19,49 @@ export default function ProductCarousel({ images, alt = "" }) {
     setCurrent((idx + imageList.length) % imageList.length);
   }, [imageList.length]);
 
-  const onTouchStart = (e) => { startX.current = e.touches[0].clientX; };
+  // Bloqueia propagação para o <Link> pai ao interagir com o carrossel
+  const stopLink = (e) => { e.preventDefault(); e.stopPropagation(); };
+
+  const onTouchStart = (e) => { e.stopPropagation(); startX.current = e.touches[0].clientX; };
   const onTouchEnd = (e) => {
+    e.stopPropagation();
     const diff = startX.current - e.changedTouches[0].clientX;
     if (Math.abs(diff) > 40) go(diff > 0 ? current + 1 : current - 1);
   };
-  const onMouseDown = (e) => { setDragging(true); startX.current = e.clientX; diffX.current = 0; };
-  const onMouseMove = (e) => { if (dragging) diffX.current = startX.current - e.clientX; };
-  const onMouseUp = () => {
-    if (dragging && Math.abs(diffX.current) > 40) go(diffX.current > 0 ? current + 1 : current - 1);
-    setDragging(false);
+
+  const onMouseDown = (e) => {
+    // Só ativa drag se há mais de uma imagem
+    if (imageList.length <= 1) return;
+    e.stopPropagation();
+    dragging.current = true;
+    startX.current = e.clientX;
+    diffX.current = 0;
+  };
+  const onMouseMove = (e) => {
+    if (!dragging.current) return;
+    e.stopPropagation();
+    diffX.current = startX.current - e.clientX;
+  };
+  const onMouseUp = (e) => {
+    if (!dragging.current) return;
+    e.stopPropagation();
+    if (Math.abs(diffX.current) > 40) {
+      e.preventDefault(); // impede o Link de navegar após drag
+      go(diffX.current > 0 ? current + 1 : current - 1);
+    }
+    dragging.current = false;
+  };
+  const onMouseLeave = (e) => {
+    if (dragging.current) { e.stopPropagation(); dragging.current = false; }
+  };
+
+  // Clique simples na imagem: só navega se não foi um drag
+  const onCarouselClick = (e) => {
+    if (Math.abs(diffX.current) > 5) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    diffX.current = 0;
   };
 
   // Placeholder quando não há imagens
@@ -52,14 +84,14 @@ export default function ProductCarousel({ images, alt = "" }) {
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}
       onMouseUp={onMouseUp}
-      onMouseLeave={() => setDragging(false)}
+      onMouseLeave={onMouseLeave}
+      onClick={onCarouselClick}
     >
       <div
         className={styles.track}
         style={{ transform: `translateX(-${current * 100}%)` }}
       >
         {imageList.map((src, i) => (
-          // CRÍTICO: cada imagem precisa de flex: 0 0 100% para ocupar 100% do carousel
           <div key={i} className={styles.slide}>
             <img
               src={src}
@@ -77,14 +109,25 @@ export default function ProductCarousel({ images, alt = "" }) {
 
       {imageList.length > 1 && (
         <>
-          <button className={`${styles.arrow} ${styles.prev}`} onClick={(e) => { e.stopPropagation(); go(current - 1); }} aria-label="Imagem anterior">‹</button>
-          <button className={`${styles.arrow} ${styles.next}`} onClick={(e) => { e.stopPropagation(); go(current + 1); }} aria-label="Próxima imagem">›</button>
+          <button
+            className={`${styles.arrow} ${styles.prev}`}
+            onClick={(e) => { stopLink(e); go(current - 1); }}
+            onMouseDown={(e) => e.stopPropagation()}
+            aria-label="Imagem anterior"
+          >‹</button>
+          <button
+            className={`${styles.arrow} ${styles.next}`}
+            onClick={(e) => { stopLink(e); go(current + 1); }}
+            onMouseDown={(e) => e.stopPropagation()}
+            aria-label="Próxima imagem"
+          >›</button>
           <div className={styles.dots}>
             {imageList.map((_, i) => (
               <button
                 key={i}
                 className={`${styles.dot} ${i === current ? styles.active : ""}`}
-                onClick={(e) => { e.stopPropagation(); setCurrent(i); }}
+                onClick={(e) => { stopLink(e); setCurrent(i); }}
+                onMouseDown={(e) => e.stopPropagation()}
                 aria-label={`Ir para imagem ${i + 1}`}
               />
             ))}
